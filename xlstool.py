@@ -1,5 +1,5 @@
 #coding:utf-8
-import xlrd,xlwt,sys,os
+import xlrd,xlwt,sys,os,operator
 from xlutils.copy import copy 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -51,7 +51,7 @@ def groupbycode():
             compvalue['ordergrp']==list[j]['ordergrp'] and \
             compvalue['enrolno']==list[j]['enrolno'] and \
             compvalue['iscontainc']==list[j]['iscontainc']:      ##是否含磁是一线出口的分单匹配条件
-            if compvalue['enrolno']=='D01':
+            if (compvalue['enrolno']=='D01')or(compvalue['enrolno']=='D18'):
                if compvalue['clearance']=='繞港': 
                   if compvalue['iszj']==list[j]['iszj'] and\
                      (compvalue['origsign']==list[j]['origsign'] or ('S\U'.find(compvalue['origsign'])>=0 and 'S\U'.find(list[j]['origsign'])>=0))and\
@@ -86,15 +86,16 @@ def groupbycode():
                      if compvalue['isdepreciate']==list[j]['isdepreciate']: #两单一审时需判断是否折旧  
                         list[j]['groupid']=num 
                      else:
-                        count=count-1                      
+                        count=count-1                                                                
                   else:
-                     list[j]['groupid']=num                           
+                     list[j]['groupid']=num         
+                     
       num=num+1
    '''
    for ibk in list:
-      if ibk['id'] in[1,2]:
-         print ibk['id'],ibk['groupid'],ibk['partno'],ibk['grp'],ibk['enrolno'],ibk['outintype'],ibk['clearance'],ibk['isdepreciate']
-   '''   
+      if ibk['groupid'] in[11,12]:
+         print ibk['id'],ibk['groupid'],ibk['partno'],ibk['origsign'],ibk['enrolno'],ibk['outintype'],ibk['clearance'],ibk['isdepreciate']
+   ''' 
    writexl=xlwt.Workbook()
    sheet1=writexl.add_sheet(u'sheet1')
     
@@ -179,10 +180,104 @@ def mergebycode():
       sheet1.write(i+1,1,list[i]['mergeid'])
       sheet1.write(i+1,2,list[i]['partno'])
    writexl.save('D:\deviceout\demo1.xls')
- 
+
+
+def relationCreate():
+   bk=xlrd.open_workbook('D:\\deviceout\\relation_todo.xls')   
+   sh=bk.sheet_by_index(1)
+   nrows=sh.nrows
+   ncols=sh.ncols
+   list=[]
+   app={}
+   for rownum in range(4,nrows):
+      rowvalue=sh.row_values(rownum)
+      app['ybno']=rowvalue[0]           ##预报单号
+      app['item']=rowvalue[1]           ##申报项次
+      app['originno']=rowvalue[36]      ##原进口报关单号
+      app['origoutno']=rowvalue[34]     ##原出口报关单号
+      app['applyname']=rowvalue[102]    ##供应商名称
+      app['applycode']=rowvalue[89]     ##供应商代码
+      app['origapplydate']=rowvalue[85] ##原申报日期
+      app['origitem']=rowvalue[69]      ##原申报项次
+      app['origg_no']=rowvalue[73]      ##原备案序号
+      app['origamount']=rowvalue[90]    ##原数量 
+      app['origprice']=rowvalue[78]     ##原申报单价
+      app['origcurrency']=rowvalue[79]  ##原申报币别
+      app['origpassdate']=rowvalue[86]  ##原放行日期
+      app['exchangerate']=rowvalue[87]  ##汇率
+      app['price']=rowvalue[44]         ##申报单价
+      app['outamount']=rowvalue[24]     ##出区数量
+      list.append(app.copy()) 
+
+   list=sorted(list,key=lambda app:(app['ybno'],app['item'])) #按预报单号和申报项次进行排序
+   diclist =[]
+   
+   for i in range(len(list)):
+      flag=False
+      dic=list[i]
+      for x in diclist:
+         if x['ybno']==dic['ybno'] and x['item']==dic['item'] \
+            and dic['originno']==x['originno'] and dic['origitem']==x['origitem'] :
+            flag=True
+            break             
+      if flag:continue        
+      for j in range(i+1,len(list)):
+         if dic['ybno']==list[j]['ybno'] and dic['item']==list[j]['item'] \
+            and dic['originno']==list[j]['originno'] and  dic['origitem']==list[j]['origitem']: 
+            dic['outamount']+=list[j]['outamount']            
+         else:
+           diclist.append(dic)
+           break 
+   '''        
+   for y in diclist:
+      if y['ybno']=='1HX-7B0028':
+         print y['ybno'],y['item'],y['originno'],y['origitem'],y['outamount']               
+   '''        
+   writexl=xlwt.Workbook()
+   style =xlwt.easyxf('font: name SimSun,color-index red, bold on;align: wrap on, vert centre, horiz center')
+
+   sheet1=writexl.add_sheet(u'sheet1')
+   sheet1.write_merge(0,0,0,15,u'报关单对照关系表',style)
+   sheet1.write(1,0,u'预报单号')
+   sheet1.write(1,1,u'申报项次')
+   sheet1.write(1,2,u'原进口报关单号')
+   sheet1.write(1,3,u'原出口报关单号')   
+   sheet1.write(1,4,u'供应商名称')   
+   sheet1.write(1,5,u'供应商代码')          
+   sheet1.write(1,6,u'原申报日期')   
+   sheet1.write(1,7,u'原申报项次')   
+   sheet1.write(1,8,u'原备案序号')   
+   sheet1.write(1,9,u'原数量')   
+   sheet1.write(1,10,u'原申报单价')
+   sheet1.write(1,11,u'原申报币别')  
+   sheet1.write(1,12,u'原放行日期')  
+   sheet1.write(1,13,u'汇率')  
+   sheet1.write(1,14,u'申报单价')  
+   sheet1.write(1,15,u'出区数量')     
+   for i in range(len(diclist)):
+      sheet1.write(i+2,0,diclist[i]['ybno'])
+      sheet1.write(i+2,1,diclist[i]['item'])
+      sheet1.write(i+2,2,diclist[i]['originno'])
+      sheet1.write(i+2,3,diclist[i]['origoutno'])
+      sheet1.write(i+2,4,diclist[i]['applyname'])
+      sheet1.write(i+2,5,diclist[i]['applycode'])
+      sheet1.write(i+2,6,diclist[i]['origapplydate'])
+      sheet1.write(i+2,7,diclist[i]['origitem'])
+      sheet1.write(i+2,8,diclist[i]['origg_no'])
+      sheet1.write(i+2,9,diclist[i]['origamount'])
+      sheet1.write(i+2,10,diclist[i]['origprice'])
+      sheet1.write(i+2,11,diclist[i]['origcurrency'])
+      sheet1.write(i+2,12,diclist[i]['origpassdate'])
+      sheet1.write(i+2,13,diclist[i]['exchangerate'])
+      sheet1.write(i+2,14,diclist[i]['price'])
+      sheet1.write(i+2,15,diclist[i]['outamount'])
+   writexl.save('D:\deviceout\\relation.xls')
+   
 
 if __name__=='__main__':
    if os.path.exists('D:\\deviceout\\pre_deviceout.xls'):
       groupbycode()
    if os.path.exists('D:\\deviceout\\deviceout.xls'):
       mergebycode()   
+   if os.path.exists('D:\\deviceout\\relation_todo.xls'):
+      relationCreate()   
