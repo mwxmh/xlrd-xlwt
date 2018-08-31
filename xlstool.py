@@ -91,11 +91,7 @@ def groupbycode():
                      list[j]['groupid']=num         
                      
       num=num+1
-   '''
-   for ibk in list:
-      if ibk['groupid'] in[11,12]:
-         print ibk['id'],ibk['groupid'],ibk['partno'],ibk['origsign'],ibk['enrolno'],ibk['outintype'],ibk['clearance'],ibk['isdepreciate']
-   ''' 
+  
    writexl=xlwt.Workbook()
    sheet1=writexl.add_sheet(u'sheet1')
     
@@ -228,11 +224,7 @@ def relationCreate():
          else:
            diclist.append(dic)
            break 
-   '''        
-   for y in diclist:
-      if y['ybno']=='1HX-7B0028':
-         print y['ybno'],y['item'],y['originno'],y['origitem'],y['outamount']               
-   '''        
+       
    writexl=xlwt.Workbook()
    style =xlwt.easyxf('font: name SimSun,color-index red, bold on;align: wrap on, vert centre, horiz center')
 
@@ -338,17 +330,17 @@ def recordlistCreate():
    sheet1.write(0,9,u'现申报要素',style)          
    sheet1.write(0,10,u'变更原因',style)      
    for i in range(len(list)):
-      sheet1.write(i+2,0,list[i]['ybno'])
-      sheet1.write(i+2,1,list[i]['item'])
-      sheet1.write(i+2,2,list[i]['originno'])
-      sheet1.write(i+2,3,list[i]['originCodeTS'])
-      sheet1.write(i+2,4,list[i]['originGname'])
-      sheet1.write(i+2,5,list[i]['originGmodel'])
-      sheet1.write(i+2,6,list[i]['nowno'])
-      sheet1.write(i+2,7,list[i]['nowCodeTS'])
-      sheet1.write(i+2,8,list[i]['nowGname'])
-      sheet1.write(i+2,9,list[i]['nowGmodel'])
-      sheet1.write(i+2,10,u'后期核查')
+      sheet1.write(i+1,0,list[i]['ybno'])
+      sheet1.write(i+1,1,list[i]['item'])
+      sheet1.write(i+1,2,list[i]['originno'])
+      sheet1.write(i+1,3,list[i]['originCodeTS'])
+      sheet1.write(i+1,4,list[i]['originGname'])
+      sheet1.write(i+1,5,list[i]['originGmodel'])
+      sheet1.write(i+1,6,list[i]['nowno'])
+      sheet1.write(i+1,7,list[i]['nowCodeTS'])
+      sheet1.write(i+1,8,list[i]['nowGname'])
+      sheet1.write(i+1,9,list[i]['nowGmodel'])
+      sheet1.write(i+1,10,u'后期核查')
    writexl.save('D:\deviceout\\record.xls')   
 
 if __name__=='__main__':
