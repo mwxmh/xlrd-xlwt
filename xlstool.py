@@ -272,12 +272,92 @@ def relationCreate():
       sheet1.write(i+2,14,diclist[i]['price'])
       sheet1.write(i+2,15,diclist[i]['outamount'])
    writexl.save('D:\deviceout\\relation.xls')
+
+def recordlistCreate():
+   bk=xlrd.open_workbook('D:\\deviceout\\record_todo.xls')   
+   sh=bk.sheet_by_index(1)
+   nrows=sh.nrows
+   ncols=sh.ncols
+   list=[]
+   app={}
+   for rownum in range(4,nrows):
+      rowvalue=sh.row_values(rownum)
+      if rowvalue[2]=='':continue
+      if rownum>4:
+         beforevalue=sh.row_values(rownum-1)
+         if rowvalue[0]==beforevalue[0] and rowvalue[1]==beforevalue[1]:continue 
+      app['ybno']=rowvalue[0]           ##预报单号
+      app['item']=rowvalue[1]           ##申报项次
+      app['notechange']=rowvalue[2]     ##备注变更
+      if app['notechange'].find('序號')>=0:
+         app['originno']=rowvalue[74]
+         app['nowno']=rowvalue[94]
+      else:
+         app['originno']=''
+         app['nowno']='' 
+
+      if app['notechange'].find('商編')>=0:
+         app['originCodeTS']=rowvalue[75]
+         app['nowCodeTS']=rowvalue[95]
+      else:
+         app['originCodeTS']=''
+         app['nowCodeTS']='' 
+
+      if app['notechange'].find('品名')>=0:
+         app['originGname']=rowvalue[76]
+         app['nowGname']=rowvalue[96]
+      else:
+         app['originGname']=''
+         app['nowGname']=''
+
+      if app['notechange'].find('申報要素')>=0:
+         app['originGmodel']=rowvalue[77]
+         app['nowGmodel']=rowvalue[100]
+      else:
+         app['originGmodel']=''
+         app['nowGmodel']=''
+      list.append(app.copy())     
    
+   for y in list:
+      if y['ybno']=='1HX-88002A':
+         print y['ybno'],y['item'],y['notechange'],y['originGmodel'],y['nowGmodel'],y['originCodeTS'],\
+         y['nowCodeTS']
+         
+   writexl=xlwt.Workbook()
+   sheet1=writexl.add_sheet(u'sheet1')
+   style =xlwt.easyxf('font:name simkai;borders:left 1,right 1,top 1,bottom 1;')      
+   sheet1.write(0,0,u'预报单号',style)
+   sheet1.write(0,1,u'申报项次',style)
+   sheet1.write(0,2,u'原序號',style)
+   sheet1.write(0,3,u'原商编',style)   
+   sheet1.write(0,4,u'原品名',style)   
+   sheet1.write(0,5,u'原申报要素',style)          
+   sheet1.write(0,6,u'現序號',style)   
+   sheet1.write(0,7,u'现商编',style)
+   sheet1.write(0,8,u'现品名',style)   
+   sheet1.write(0,9,u'现申报要素',style)          
+   sheet1.write(0,10,u'变更原因',style)      
+   for i in range(len(list)):
+      sheet1.write(i+2,0,list[i]['ybno'])
+      sheet1.write(i+2,1,list[i]['item'])
+      sheet1.write(i+2,2,list[i]['originno'])
+      sheet1.write(i+2,3,list[i]['originCodeTS'])
+      sheet1.write(i+2,4,list[i]['originGname'])
+      sheet1.write(i+2,5,list[i]['originGmodel'])
+      sheet1.write(i+2,6,list[i]['nowno'])
+      sheet1.write(i+2,7,list[i]['nowCodeTS'])
+      sheet1.write(i+2,8,list[i]['nowGname'])
+      sheet1.write(i+2,9,list[i]['nowGmodel'])
+      sheet1.write(i+2,10,u'后期核查')
+   writexl.save('D:\deviceout\\record.xls')   
 
 if __name__=='__main__':
+   
    if os.path.exists('D:\\deviceout\\pre_deviceout.xls'):
       groupbycode()
    if os.path.exists('D:\\deviceout\\deviceout.xls'):
       mergebycode()   
    if os.path.exists('D:\\deviceout\\relation_todo.xls'):
-      relationCreate()   
+      relationCreate()         
+   if os.path.exists('D:\\deviceout\\record_todo.xls'):
+      recordlistCreate()    
