@@ -310,10 +310,6 @@ def recordlistCreate():
          app['nowGmodel']=''
       list.append(app.copy())     
    
-   for y in list:
-      if y['ybno']=='1HX-88002A':
-         print y['ybno'],y['item'],y['notechange'],y['originGmodel'],y['nowGmodel'],y['originCodeTS'],\
-         y['nowCodeTS']
          
    writexl=xlwt.Workbook()
    sheet1=writexl.add_sheet(u'sheet1')
